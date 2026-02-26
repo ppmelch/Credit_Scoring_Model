@@ -1,8 +1,4 @@
-from libraries import re, np, pd, logging
-
-
-logging.basicConfig(level=logging.INFO, format="%(message)s")
-logger = logging.getLogger(__name__)
+from libraries import re, np, pd
 
 
 DROP_COLS = ["ID", "Customer_ID", "Month", "Name", "SSN"]
@@ -39,7 +35,12 @@ RANGE_RULES = [
 
 
 def _convert_credit_history_age(x) -> float:
-    """Convert '22 Years and 3 Months' to decimal years."""
+    """
+    Convert a credit history string such as
+    '22 Years and 3 Months' into decimal years.
+
+    Returns NaN if the value is missing.
+    """
     if pd.isna(x):
         return np.nan
 
@@ -52,10 +53,16 @@ def _convert_credit_history_age(x) -> float:
     return round(y + m / 12, 4)
 
 
-def _apply_range_rule(data: pd.DataFrame, col: str,
+def _apply_range_rule(data: pd.DataFrame,
+                      col: str,
                       min_val: float | None,
                       max_val: float | None) -> pd.DataFrame:
-    """Apply logical bounds, create invalid flag, and set out-of-range to NaN."""
+    """
+    Apply logical bounds to a numeric column.
+
+    Values outside the specified range are set to NaN
+    and an '<col>_invalid' indicator column is created.
+    """
     mask = pd.Series(False, index=data.index)
 
     if min_val is not None:
@@ -63,32 +70,23 @@ def _apply_range_rule(data: pd.DataFrame, col: str,
     if max_val is not None:
         mask |= data[col] > max_val
 
-    n_invalid = mask.sum()
-
-    if n_invalid > 0:
+    if mask.any():
         data[f"{col}_invalid"] = mask.astype(int)
         data.loc[mask, col] = np.nan
-
-        logger.info(
-            f"[{col}] {n_invalid} values outside "
-            f"[{min_val}, {max_val}] → set to NaN"
-        )
 
     return data
 
 
 def _impute_numeric(data: pd.DataFrame, col: str) -> pd.DataFrame:
-    """Impute numeric column with median and create missing flag."""
-    n_missing = data[col].isna().sum()
+    """
+    Impute missing numeric values using the median.
 
-    if n_missing > 0:
+    Creates an '<col>_missing' indicator column when missing values exist.
+    """
+    if data[col].isna().any():
         data[f"{col}_missing"] = data[col].isna().astype(int)
         median_val = data[col].median()
         data[col] = data[col].fillna(median_val)
-
-        logger.info(
-            f"[{col}] {n_missing} NaN imputed with median={median_val:.4f}"
-        )
 
     return data
 
@@ -96,36 +94,41 @@ def _impute_numeric(data: pd.DataFrame, col: str) -> pd.DataFrame:
 def data_preprocessing(data: pd.DataFrame,
                        save_path: str | None = None) -> pd.DataFrame:
     """
-    Full preprocessing pipeline for the Credit Score dataset.
+    Execute the full preprocessing pipeline for the Credit Score dataset.
 
-    Steps:
-        1. Drop identification columns.
-        2. Clean corrupted string patterns.
-        3. Convert noisy numeric columns.
-        4. Convert Credit_History_Age to decimal years.
-        5. Impute categorical missing values.
-        6. Apply logical range validation.
-        7. Impute remaining numeric missing values.
-        8. Normalize categorical inconsistencies.
+    Steps performed:
+        1. Drop identification and PII columns.
+        2. Remove corrupted string patterns and noise.
+        3. Convert selected columns to numeric.
+        4. Transform Credit_History_Age into decimal years.
+        5. Impute missing categorical values with 'Missing'.
+        6. Apply logical range validation rules.
+        7. Impute remaining numeric missing values with median.
+        8. Normalize Payment_of_Min_Amount values.
 
-    Returns:
-        Cleaned DataFrame.
+    Parameters
+    ----------
+    data : pd.DataFrame
+        Raw input dataset.
+    save_path : str | None, optional
+        If provided, the cleaned dataset is saved to this path.
+
+    Returns
+    -------
+    pd.DataFrame
+        Cleaned and processed dataset.
     """
 
     data = data.copy()
 
-    logger.info("=" * 60)
-    logger.info("START DATA PREPROCESSING")
-    logger.info(f"Input shape: {data.shape}")
-
-    # 1. Drop IDs
+    # Drop identification columns
     data.drop(columns=DROP_COLS, inplace=True, errors="ignore")
 
-    # 2. Clean global string noise
+    # Remove global string noise
     data = data.replace({r"_+": "", r"!@9#%8": ""}, regex=True)
     data = data.replace("", np.nan)
 
-    # 3. Convert numeric columns with noise
+    # Convert noisy numeric columns
     for col in STRIP_NOISE_COLS:
         if col in data.columns:
             data[col] = (
@@ -135,33 +138,30 @@ def data_preprocessing(data: pd.DataFrame,
                 .pipe(pd.to_numeric, errors="coerce")
             )
 
-    # 4. Convert Credit_History_Age
+    # Convert Credit_History_Age to decimal years
     if "Credit_History_Age" in data.columns:
         data["Credit_History_Age"] = data["Credit_History_Age"].apply(
             _convert_credit_history_age
         )
 
-    # 5. Impute categorical missing
+    # Impute categorical columns
     for col in FILL_MISSING_STR:
         if col in data.columns:
-            n = data[col].isna().sum()
-            if n > 0:
-                data[col] = data[col].fillna("Missing")
-                logger.info(f"[{col}] {n} missing → 'Missing'")
+            data[col] = data[col].fillna("Missing")
 
-    # 6. Apply logical range rules
+    # Apply logical range rules
     for col, lo, hi in RANGE_RULES:
         if col in data.columns:
             data = _apply_range_rule(data, col, lo, hi)
 
-    # 7. Impute remaining numeric missing
+    # Impute remaining numeric columns
     numeric_cols = data.select_dtypes(include=["int64", "float64"]).columns
 
     for col in numeric_cols:
         if not col.endswith(("_invalid", "_missing")):
             data = _impute_numeric(data, col)
 
-    # 8. Normalize Payment_of_Min_Amount
+    # Normalize categorical inconsistencies
     if "Payment_of_Min_Amount" in data.columns:
         data["Payment_of_Min_Amount"] = (
             data["Payment_of_Min_Amount"]
@@ -169,12 +169,7 @@ def data_preprocessing(data: pd.DataFrame,
             .str.replace("NM", "No", regex=False)
         )
 
-    logger.info(f"Output shape: {data.shape}")
-    logger.info("END DATA PREPROCESSING")
-    logger.info("=" * 60)
-
     if save_path is not None:
         data.to_csv(save_path, index=False)
-        logger.info(f"File saved to: {save_path}")
 
     return data
