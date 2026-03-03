@@ -1,6 +1,6 @@
 import logging
 
-from libraries import pd , RandomForestClassifier , XGBClassifier
+from libraries import pd , XGBClassifier
 from train_model import CreditScoringPipeline
 import mlflow
 import mlflow.sklearn
@@ -14,14 +14,6 @@ class Experiment:
         self.version = version
 
         self.models = {
-            "RandomForest": (
-                RandomForestClassifier(
-                    n_estimators=100,
-                    random_state=42,
-                    n_jobs=-1
-                ),
-                False
-            ),
             "XGBoost": (
                 XGBClassifier(
                     n_estimators=100,
@@ -32,7 +24,6 @@ class Experiment:
                 False
             ),
         }
-
         self.results = {}
         self.best_model = None
 
@@ -65,13 +56,12 @@ class Experiment:
                     name="model"
                 )
 
-                # 🔴 AQUÍ estaba tu error antes
                 self.results[name] = {
                     "cv_mean": mean_cv,
                     "cv_std": std_cv,
                     "accuracy": acc,
                     "auc": auc,
-                    "pipeline": pipeline   # ← ahora sí lo guardamos
+                    "pipeline": pipeline   
                 }
 
         self._select_best()
