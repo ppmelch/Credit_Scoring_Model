@@ -1,11 +1,13 @@
-from src.utils.utils import *
-from sklearn.metrics import auc, roc_auc_score, roc_curve
 import shap
-import matplotlib.pyplot as plt
-from sklearn.preprocessing import label_binarize
+import numpy as np
+import pandas as pd
 import seaborn as sns
+import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
 from sklearn.metrics import roc_auc_score
+from sklearn.preprocessing import label_binarize
+from sklearn.metrics import auc, roc_auc_score, roc_curve
+
 
 sns.set_theme(style="whitegrid", palette="Greys_r")
 plt.rcParams["figure.figsize"] = (12, 6)  
@@ -14,9 +16,6 @@ plt.rcParams["figure.dpi"] = 100
 red_grey = mcolors.LinearSegmentedColormap.from_list(
     "RedGrey",
     ["#bfbfbf96", "#c60f0f"])
-
-
-
 
 
 def plot_macro_roc(y_test, proba, model_name="Modelo"):
