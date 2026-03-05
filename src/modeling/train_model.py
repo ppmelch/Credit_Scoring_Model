@@ -3,18 +3,19 @@ import numpy as np
 
 from sklearn.pipeline import Pipeline
 from sklearn.compose import ColumnTransformer
-from sklearn.preprocessing import OneHotEncoder, StandardScaler
+from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import (
     train_test_split,
     StratifiedKFold,
     cross_val_score,
-    RandomizedSearchCV
 )
 from sklearn.metrics import (
     accuracy_score,
     classification_report,
     roc_auc_score
 )
+
+from src.modeling.score_model import CreditScoreModel
 
 class CreditScoringPipeline:
 
@@ -117,3 +118,4 @@ class CreditScoringPipeline:
     def save(self, path):
 
         joblib.dump(self.pipeline, path)
+       

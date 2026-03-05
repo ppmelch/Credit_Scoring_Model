@@ -1,4 +1,4 @@
-from libraries import *
+from src.utils.utils import *
 from sklearn.metrics import auc, roc_auc_score, roc_curve
 import shap
 import matplotlib.pyplot as plt
@@ -352,89 +352,30 @@ def plot_xgb_importance(model, X,
     
    
 
-def plot_score_distribution(scores, y):
+def plot_score_distribution(scores, y,
+                            class_names=("Poor","Standard","Good"),
+                            model_name="Score Model"):
 
-    colors = {
-        0: "red",
-        1: "orange",
-        2: "green"
-    }
-
-    labels = {
-        0: "Poor",
-        1: "Standard",
-        2: "Good"
-    }
+    scores = np.array(scores)
+    y = np.array(y)
 
     plt.figure()
 
-    for c in np.unique(y):
+    for i, name in enumerate(class_names):
 
-        class_scores = scores[y == c]
+        class_scores = scores[y == i]
 
-        plt.hist(
+        sns.kdeplot(
             class_scores,
-            bins=40,
-            alpha=0.5,
-            color=colors[c],
-            label=labels[c]
+            fill=True,
+            alpha=0.35,
+            linewidth=2,
+            label=name
         )
 
-        # media de la clase
-        mean_score = class_scores.mean()
-
-        # línea vertical
-        plt.axvline(
-            mean_score,
-            color=colors[c],
-            linestyle="--",
-            linewidth=2
-        )
-
-    plt.legend()
+    plt.title(f"Score Density - {model_name}")
     plt.xlabel("Score")
-    plt.ylabel("Frequency")
-    plt.title("Score distribution by class")
-
+    plt.ylabel("Density")
+    plt.legend()
+    plt.tight_layout()
     plt.show()
-    
-from sklearn.metrics import accuracy_score
-
-
-def plot_accuracy_vs_threshold(scores, y):
-
-    thresholds = np.linspace(scores.min(), scores.max(), 200)
-
-    accs = []
-
-    for t in thresholds:
-
-        y_pred = (scores > t).astype(int)
-
-        acc = accuracy_score(y > 0, y_pred)
-
-        accs.append(acc)
-
-    plt.figure()
-
-    plt.plot(thresholds, accs)
-
-    plt.xlabel("Threshold")
-    plt.ylabel("Accuracy")
-    plt.title("Accuracy vs Threshold")
-
-    plt.show()
-    
-    
-def bucket_analysis(scores, y, n_buckets=10):
-
-    df = pd.DataFrame({
-        "score": scores,
-        "y": y
-    })
-
-    df["bucket"] = pd.qcut(df["score"], n_buckets)
-
-    summary = df.groupby("bucket", observed=False)["y"].mean()
-
-    return summary

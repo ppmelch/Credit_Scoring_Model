@@ -1,6 +1,4 @@
-import numpy as np
-
-
+from src.utils.utils import np 
 
 class CreditScoreModel:
 
@@ -12,7 +10,6 @@ class CreditScoreModel:
         self.t1 = 569 
         self.t2 = 645 
         
-
     def score(self, X):
 
         Xv = np.asarray(X)
@@ -24,8 +21,7 @@ class CreditScoreModel:
     def credit_score(self, X):
 
         z = self.score(X)
-
-        # invertir score para que alto = Good
+        
         z = -z
 
         z_min = z.min()
@@ -40,11 +36,12 @@ class CreditScoreModel:
 
         return score.astype(int)
     
+    def predict(self, X):
+
+        scores = self.credit_score(X)
+
+        return np.array([self.classify(s) for s in scores])
     
-    # ------------------------
-    # thresholds
-    # ------------------------
-       
     def classify(self, score):
 
         if score < self.t1:

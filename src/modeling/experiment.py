@@ -1,12 +1,13 @@
 import logging
 
 from sklearn.linear_model import LogisticRegression
-from libraries import pd
-from train_model import CreditScoringPipeline
+from sklearn.model_selection import train_test_split
+from src.utils.utils import pd
+from src.modeling.train_model import CreditScoringPipeline
 import mlflow
 import mlflow.sklearn
-logging.getLogger("mlflow").setLevel(logging.CRITICAL)
 
+logging.getLogger("mlflow").setLevel(logging.CRITICAL)
 
 
 class Experiment:
@@ -26,6 +27,19 @@ class Experiment:
         self.intercept = None
 
 
+    def split_data(self, X, y):
+
+        X_train, X_test, y_train, y_test = train_test_split(
+            X,
+            y,
+            test_size=0.2,
+            stratify=y,
+            random_state=42
+        )
+
+        return X_train, X_test, y_train, y_test
+
+
     def run(self, X_train, y_train):
 
         pipeline = CreditScoringPipeline(
@@ -43,13 +57,11 @@ class Experiment:
 
         return coef, intercept
     
-    
+
     def transform(self, X):
 
         scaler = self.pipeline.pipeline.named_steps["preprocessor"]
 
         X_scaled = scaler.transform(X)
-        
-        
 
         return X_scaled
