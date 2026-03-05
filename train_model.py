@@ -16,14 +16,10 @@ from sklearn.metrics import (
     roc_auc_score
 )
 
-
 class CreditScoringPipeline:
-    """
-    End-to-end pipeline for training, tuning, and evaluating
-    credit scoring classification models.
-    """
 
     def __init__(self, model, scale_numeric=True):
+
         self.model = model
         self.scale_numeric = scale_numeric
         self.pipeline = None
@@ -31,8 +27,7 @@ class CreditScoringPipeline:
 
     def _build_preprocessor(self, X):
 
-        categorical_cols = X.select_dtypes(include="object").columns
-        numeric_cols = X.select_dtypes(exclude="object").columns
+        numeric_cols = X.columns
 
         numeric_transformer = (
             StandardScaler() if self.scale_numeric else "passthrough"
@@ -40,12 +35,7 @@ class CreditScoringPipeline:
 
         preprocessor = ColumnTransformer(
             transformers=[
-                ("cat",
-                 OneHotEncoder(drop="first", handle_unknown="ignore"),
-                 categorical_cols),
-                ("num",
-                 numeric_transformer,
-                 numeric_cols)
+                ("num", numeric_transformer, numeric_cols)
             ]
         )
 
@@ -54,12 +44,16 @@ class CreditScoringPipeline:
 
     def build_pipeline(self, X):
 
+        if self.pipeline is not None:
+            return
+
         preprocessor = self._build_preprocessor(X)
 
         self.pipeline = Pipeline([
             ("preprocessor", preprocessor),
             ("model", self.model)
         ])
+
 
     def cross_validate(self, X, y, cv=5):
 
@@ -83,38 +77,11 @@ class CreditScoringPipeline:
         return np.mean(scores), np.std(scores)
 
 
-    def tune(self, X, y, param_dist, n_iter=20, cv=5):
-
-        self.build_pipeline(X)
-
-        skf = StratifiedKFold(
-            n_splits=cv,
-            shuffle=True,
-            random_state=42
-        )
-
-        search = RandomizedSearchCV(
-            self.pipeline,
-            param_distributions=param_dist,
-            n_iter=n_iter,
-            scoring="f1_macro",
-            cv=skf,
-            random_state=42,
-            n_jobs=-1,
-            verbose=0
-        )
-
-        search.fit(X, y)
-
-        self.pipeline = search.best_estimator_
-
-        return search.best_params_, search.best_score_
-
-
     def fit(self, X, y):
 
         self.build_pipeline(X)
         self.pipeline.fit(X, y)
+
 
     def evaluate(self, X_test, y_test):
 
@@ -138,6 +105,14 @@ class CreditScoringPipeline:
     def predict(self, X):
 
         return self.pipeline.predict(X)
+
+
+    def get_coefficients(self):
+
+        model = self.pipeline.named_steps["model"]
+
+        return model.coef_, model.intercept_
+
 
     def save(self, path):
 
