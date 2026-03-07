@@ -46,32 +46,68 @@ The **Credit Scoring Model** transforms raw consumer credit data into interpreta
 
 ## Project Structure
 
-```
-Credit_Scoring_Model/
-├── data/
-│   ├── train-3.csv                  # Raw input data
-│   ├── clean_train.csv              # Preprocessed dataset
-│   └── scores_full_dataset.csv      # Model output scores
-├── notebooks/
-│   ├── feature_analysis.ipynb       # Feature exploration
-│   └── test.ipynb                   # Scratch notebook
-├── src/
-│   ├── data/
-│   │   ├── data_cleaning.py         # Preprocessing pipeline
-│   │   └── load_data.py             # Data loading & feature selection
-│   ├── modeling/
-│   │   ├── train_model.py           # CreditScoringPipeline (sklearn wrapper)
-│   │   ├── trainer.py               # Experiment (split + fit + transform)
-│   │   ├── score_model.py           # CreditScoreModel (scoring & classification)
-│   │   └── score_pipeline.py        # Functional helpers (train / evaluate / score)
-│   ├── utils/
-│   │   └── utils.py                 # print_results helper
-│   └── visualization/
-│       └── viz.py                   # Confusion matrix & distribution plots
-├── architecture_functional.mmd      # Mermaid – functional data-flow diagram
-├── architecture_oop.mmd             # Mermaid – OOP class diagram
-├── main.py                          # Entry point
-└── requirements.txt
+``` mermaid
+flowchart TD
+    ROOT["Credit_Scoring_Model/"]
+
+    ROOT --> DATA["data/"]
+    ROOT --> NOTEBOOKS["notebooks/"]
+    ROOT --> SRC["src/"]
+    ROOT --> MAIN["main.py"]
+    ROOT --> REQ["requirements.txt"]
+    ROOT --> README["README.md"]
+
+    DATA --> D1["train-3.csv"]
+    D1 --> D2["clean_train.csv"]
+    D2 --> D3["scores_full_dataset.csv"]
+
+    NOTEBOOKS --> N1["feature_analysis.ipynb"]
+    N1 --> N2["test.ipynb"]
+
+    SRC --> SRC_DATA["data/"]
+    SRC --> SRC_MOD["modeling/"]
+    SRC --> SRC_UTILS["utils/"]
+    SRC --> SRC_VIZ["visualization/"]
+
+    SRC_DATA --> SD1["data_cleaning.py"]
+    SD1 --> SD2["load_data.py"]
+
+    SRC_MOD --> SM1["train_model.py"]
+    SM1 --> SM2["trainer.py"]
+    SM2 --> SM3["score_model.py"]
+    SM3 --> SM4["score_pipeline.py"]
+
+    SRC_UTILS --> SU1["utils.py"]
+
+    SRC_VIZ --> SV1["viz.py"]
+
+    style ROOT fill:#222,stroke:#222,color:#fff,font-weight:bold
+    style DATA fill:#444,stroke:#444,color:#fff
+    style NOTEBOOKS fill:#444,stroke:#444,color:#fff
+    style SRC fill:#444,stroke:#444,color:#fff
+    style MAIN fill:#444,stroke:#444,color:#fff
+    style REQ fill:#444,stroke:#444,color:#fff
+    style README fill:#444,stroke:#444,color:#fff
+
+    style SRC_DATA fill:#666,stroke:#666,color:#fff
+    style SRC_MOD fill:#666,stroke:#666,color:#fff
+    style SRC_UTILS fill:#666,stroke:#666,color:#fff
+    style SRC_VIZ fill:#666,stroke:#666,color:#fff
+
+    style D1 fill:#999,stroke:#999,color:#fff
+    style D2 fill:#999,stroke:#999,color:#fff
+    style D3 fill:#999,stroke:#999,color:#fff
+    style N1 fill:#999,stroke:#999,color:#fff
+    style N2 fill:#999,stroke:#999,color:#fff
+    style SD1 fill:#999,stroke:#999,color:#fff
+    style SD2 fill:#999,stroke:#999,color:#fff
+    style SM1 fill:#999,stroke:#999,color:#fff
+    style SM2 fill:#999,stroke:#999,color:#fff
+    style SM3 fill:#999,stroke:#999,color:#fff
+    style SM4 fill:#999,stroke:#999,color:#fff
+    style SU1 fill:#999,stroke:#999,color:#fff
+    style SV1 fill:#999,stroke:#999,color:#fff
+
 ```
 
 ---
