@@ -1,5 +1,6 @@
-from src.utils.utils import re, np, pd
-
+import re
+import numpy as np
+import pandas as pd
 
 DROP_COLS = ["ID", "Customer_ID", "Month", "Name", "SSN"]
 
@@ -65,12 +66,7 @@ def _convert_credit_history_age(x) -> float:
     return round(y + m / 12, 4)
 
 
-def _apply_range_rule(
-    data: pd.DataFrame,
-    col: str,
-    min_val: float | None,
-    max_val: float | None
-) -> pd.DataFrame:
+def _apply_range_rule(data: pd.DataFrame, col: str, min_val: float | None, max_val: float | None) -> pd.DataFrame:
     """
     Enforce logical bounds on numeric variables.
 
@@ -135,10 +131,7 @@ def _impute_numeric(data: pd.DataFrame, col: str) -> pd.DataFrame:
     return data
 
 
-def data_preprocessing(
-    data: pd.DataFrame,
-    save_path: str | None = None
-) -> pd.DataFrame:
+def data_preprocessing(data: pd.DataFrame, save_path: str | None = None) -> pd.DataFrame:
     """
     Execute the full preprocessing pipeline for the Credit Score dataset.
 

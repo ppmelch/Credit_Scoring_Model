@@ -1,4 +1,5 @@
-import logging
+import numpy as np
+import pandas as pd
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import train_test_split
 from src.modeling.train_model import CreditScoringPipeline
@@ -6,25 +7,21 @@ from src.modeling.train_model import CreditScoringPipeline
 
 class Experiment:
     """
-    Class responsible for running model training experiments.
+    Manage a credit scoring training experiment.
 
-    This class manages the full lifecycle of a training experiment:
-    - model initialization
-    - data splitting
-    - pipeline training
-    - coefficient extraction
-    - feature transformation using the trained preprocessing pipeline
+    This class handles dataset splitting, model training through a
+    preprocessing pipeline, and storage of learned model parameters.
     """
 
-    def __init__(self, version="v1"):
+    def __init__(self, version: str = "v1") -> None:
         """
-        Initialize the experiment configuration.
+        Initialize experiment settings.
 
-        Args:
-            version (str, optional): Version identifier for the experiment.
-                Useful when tracking experiments with MLflow or versioning models.
+        Parameters
+        ----------
+        version : str, optional
+            Version identifier for the experiment (default: "v1").
         """
-
         self.version = version
 
         self.model = LogisticRegression(
@@ -37,24 +34,24 @@ class Experiment:
         self.coef = None
         self.intercept = None
 
-    def split_data(self, X, y):
+    def split_data(self, X: pd.DataFrame, y: pd.Series | np.ndarray) -> tuple[pd.DataFrame, pd.DataFrame, pd.Series, pd.Series]:
         """
-        Split the dataset into training and testing subsets.
+        Split the dataset into training and testing sets.
 
-        The split preserves the class distribution using stratified sampling.
+        Stratified sampling is used to preserve the class distribution.
 
-        Args:
-            X (pd.DataFrame): Feature matrix.
-            y (pd.Series or np.ndarray): Target labels.
+        Parameters
+        ----------
+        X : pd.DataFrame
+            Feature matrix.
+        y : pd.Series or np.ndarray
+            Target labels.
 
-        Returns:
-            tuple:
-                X_train (pd.DataFrame): Training features
-                X_test (pd.DataFrame): Testing features
-                y_train (pd.Series): Training labels
-                y_test (pd.Series): Testing labels
+        Returns
+        -------
+        tuple
+            X_train, X_test, y_train, y_test
         """
-
         X_train, X_test, y_train, y_test = train_test_split(
             X,
             y,
@@ -65,23 +62,28 @@ class Experiment:
 
         return X_train, X_test, y_train, y_test
 
-    def run(self, X_train, y_train):
+    def run(self, X_train: pd.DataFrame, y_train: pd.Series | np.ndarray) -> tuple[np.ndarray, np.ndarray]:
         """
         Train the credit scoring pipeline.
 
-        This method builds the preprocessing pipeline, fits the logistic
-        regression model, and extracts the learned coefficients.
+        The method fits the preprocessing pipeline and logistic regression
+        model, then extracts the learned coefficients.
 
-        Args:
-            X_train (pd.DataFrame): Training feature matrix.
-            y_train (pd.Series or np.ndarray): Training target labels.
+        Parameters
+        ----------
+        X_train : pd.DataFrame
+            Training feature matrix.
+        y_train : pd.Series or np.ndarray
+            Training target labels.
 
-        Returns:
-            tuple:
-                coef (np.ndarray): Model coefficients for each class.
-                intercept (np.ndarray): Intercept terms for each class.
+        Returns
+        -------
+        tuple
+            coef : np.ndarray
+                Model coefficients.
+            intercept : np.ndarray
+                Model intercepts.
         """
-
         pipeline = CreditScoringPipeline(
             self.model,
             scale_numeric=True
@@ -97,18 +99,18 @@ class Experiment:
 
         return coef, intercept
 
-    def transform(self, X):
+    def transform(self, X: pd.DataFrame | np.ndarray) -> np.ndarray:
         """
-        Apply the trained preprocessing pipeline to new data.
+        Transform features using the fitted preprocessing pipeline.
 
-        This method uses the fitted preprocessing step (e.g., scaling)
-        to transform input features before scoring.
+        Parameters
+        ----------
+        X : pd.DataFrame or array-like
+            Input features.
 
-        Args:
-            X (pd.DataFrame or array-like): Feature matrix to transform.
-
-        Returns:
-            np.ndarray: Transformed feature matrix.
+        Returns
+        -------
+        np.ndarray
+            Transformed feature matrix.
         """
-
         return self.pipeline.pipeline.named_steps["preprocessor"].transform(X)

@@ -1,9 +1,11 @@
+import numpy as np
 import pandas as pd
 from sklearn.metrics import accuracy_score
+from src.modeling.trainer import Experiment
 from src.modeling.score_model import CreditScoreModel
 
 
-def train_score_model(experiment, X_train, y_train, X_test, features):
+def train_score_model(experiment: Experiment, X_train: pd.DataFrame, y_train: pd.Series | np.ndarray, X_test: pd.DataFrame, features: list[str]) -> tuple[CreditScoreModel, np.ndarray, np.ndarray]:
     """
     Train the credit scoring model and prepare transformed datasets.
 
@@ -24,16 +26,12 @@ def train_score_model(experiment, X_train, y_train, X_test, features):
     experiment : Experiment
         Experiment object responsible for fitting the preprocessing
         pipeline and the logistic regression model.
-
     X_train : pd.DataFrame
         Training feature dataset.
-
     y_train : pd.Series or np.ndarray
         Training target labels.
-
     X_test : pd.DataFrame
         Test feature dataset.
-
     features : list
         List of feature names used by the model.
 
@@ -41,10 +39,8 @@ def train_score_model(experiment, X_train, y_train, X_test, features):
     -------
     model : CreditScoreModel
         Trained credit scoring model.
-
     X_train_scaled : np.ndarray
         Transformed training features after preprocessing.
-
     X_test_scaled : np.ndarray
         Transformed test features after preprocessing.
     """
@@ -69,12 +65,14 @@ def train_score_model(experiment, X_train, y_train, X_test, features):
     return model, X_train_scaled, X_test_scaled
 
 
-def evaluate_model(model, X_train, X_test, y_test):
+def evaluate_model(model: CreditScoreModel, X_train: np.ndarray, X_test: np.ndarray, y_test: pd.Series | np.ndarray) -> tuple[float, np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
     """
     Evaluate the credit scoring model's performance.
+
     This function computes the credit scores for both the training and
     test datasets, generates predictions, and calculates the classification
     accuracy on the test set.
+
     Parameters
     ----------
     model : CreditScoreModel
@@ -85,6 +83,7 @@ def evaluate_model(model, X_train, X_test, y_test):
         Transformed test features.
     y_test : pd.Series or np.ndarray
         True labels for the test dataset.
+
     Returns
     -------
     acc : float
@@ -110,7 +109,7 @@ def evaluate_model(model, X_train, X_test, y_test):
     return acc, scores_train, scores_test, y_pred_train, y_pred_test
 
 
-def score_dataset(data, model, experiment, save_path="predicted_scores.csv"):
+def score_dataset(data: pd.DataFrame, model: CreditScoreModel, experiment: Experiment, save_path: str = "predicted_scores.csv") -> pd.DataFrame:
     """
     Compute credit scores and predicted categories for a dataset.
 
@@ -118,13 +117,10 @@ def score_dataset(data, model, experiment, save_path="predicted_scores.csv"):
     ----------
     data : pd.DataFrame
         Dataset to score.
-
     model : CreditScoreModel
         Trained credit score model.
-
     experiment : Experiment
         Experiment object containing the fitted preprocessing pipeline.
-
     save_path : str, optional
         Path where the scored dataset will be saved.
 

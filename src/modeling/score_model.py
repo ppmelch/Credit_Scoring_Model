@@ -11,7 +11,7 @@ class CreditScoreModel:
     score thresholds.
     """
 
-    def __init__(self, coef, intercept, features):
+    def __init__(self, coef: np.ndarray, intercept: float, features: list[str]) -> None:
         """
         Initialize the credit score model.
 
@@ -21,15 +21,13 @@ class CreditScoreModel:
             intercept (float): Intercept term of the logistic regression model.
             features (list): List of feature names used by the model.
         """
-
         self.coef = coef
         self.intercept = intercept
         self.features = features
-
         self.t1 = 327
         self.t2 = 409
 
-    def score(self, X):
+    def score(self, X: np.ndarray) -> np.ndarray:
         """
         Compute the linear score (logit) of the model.
 
@@ -39,13 +37,11 @@ class CreditScoreModel:
         Returns:
             np.ndarray: Linear combination of features and coefficients.
         """
-
         Xv = np.asarray(X)
         z = np.dot(Xv, self.coef) + self.intercept
-
         return z
 
-    def credit_score(self, X):
+    def credit_score(self, X: np.ndarray) -> np.ndarray:
         """
         Convert the model's linear score into a normalized credit score.
 
@@ -58,22 +54,16 @@ class CreditScoreModel:
         Returns:
             np.ndarray: Credit scores between 300 and 850.
         """
-
         z = self.score(X)
-
         z_min = z.min()
         z_max = z.max()
-
         score_norm = (z - z_min) / (z_max - z_min)
-
         score_min = 0
         score_max = 500
-
         score = score_norm * (score_max - score_min) + score_min
-
         return score.astype(int)
 
-    def predict(self, X):
+    def predict(self, X: np.ndarray) -> np.ndarray:
         """
         Predict credit classes based on computed credit scores.
 
@@ -83,12 +73,10 @@ class CreditScoreModel:
         Returns:
             np.ndarray: Predicted credit class labels.
         """
-
         scores = self.credit_score(X)
-
         return np.array([self.classify(s) for s in scores])
 
-    def classify(self, score):
+    def classify(self, score: int) -> int:
         """
         Assign a credit category based on score thresholds.
 
@@ -101,12 +89,9 @@ class CreditScoreModel:
                  1 -> Standard
                  2 -> Good
         """
-
         if score < self.t1:
-            return 0   # Poor
-
+            return 0
         elif score < self.t2:
-            return 1   # Standard
-
+            return 1
         else:
-            return 2   # Good
+            return 2

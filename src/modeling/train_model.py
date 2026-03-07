@@ -1,5 +1,6 @@
 import joblib
 import numpy as np
+import pandas as pd
 from sklearn.pipeline import Pipeline
 from sklearn.compose import ColumnTransformer
 from sklearn.preprocessing import StandardScaler
@@ -16,7 +17,7 @@ class CreditScoringPipeline:
     evaluation, prediction, and coefficient extraction from the trained model.
     """
 
-    def __init__(self, model, scale_numeric=True):
+    def __init__(self, model, scale_numeric: bool = True) -> None:
         """
         Initialize the pipeline.
 
@@ -27,12 +28,11 @@ class CreditScoringPipeline:
         scale_numeric : bool, optional
             Whether to apply StandardScaler to numeric features.
         """
-
         self.model = model
         self.scale_numeric = scale_numeric
         self.pipeline = None
 
-    def _build_preprocessor(self, X):
+    def _build_preprocessor(self, X: pd.DataFrame) -> ColumnTransformer:
         """
         Create the preprocessing component of the pipeline.
 
@@ -46,7 +46,6 @@ class CreditScoringPipeline:
         ColumnTransformer
             Preprocessing transformer that scales numeric features.
         """
-
         numeric_cols = X.columns
 
         numeric_transformer = (
@@ -61,7 +60,7 @@ class CreditScoringPipeline:
 
         return preprocessor
 
-    def build_pipeline(self, X):
+    def build_pipeline(self, X: pd.DataFrame) -> None:
         """
         Build the full training pipeline.
 
@@ -73,7 +72,6 @@ class CreditScoringPipeline:
         X : pd.DataFrame
             Feature dataset used to configure preprocessing.
         """
-
         if self.pipeline is not None:
             return
 
@@ -84,7 +82,7 @@ class CreditScoringPipeline:
             ("model", self.model)
         ])
 
-    def cross_validate(self, X, y, cv=5):
+    def cross_validate(self, X: pd.DataFrame, y: pd.Series | np.ndarray, cv: int = 5) -> tuple[float, float]:
         """
         Perform stratified cross-validation on the pipeline.
 
@@ -102,7 +100,6 @@ class CreditScoringPipeline:
         tuple
             Mean and standard deviation of the F1 macro score.
         """
-
         self.build_pipeline(X)
 
         skf = StratifiedKFold(
@@ -122,7 +119,7 @@ class CreditScoringPipeline:
 
         return np.mean(scores), np.std(scores)
 
-    def fit(self, X, y):
+    def fit(self, X: pd.DataFrame, y: pd.Series | np.ndarray) -> None:
         """
         Train the pipeline on the provided dataset.
 
@@ -133,11 +130,10 @@ class CreditScoringPipeline:
         y : pd.Series or np.ndarray
             Target variable.
         """
-
         self.build_pipeline(X)
         self.pipeline.fit(X, y)
 
-    def evaluate(self, X_test, y_test):
+    def evaluate(self, X_test: pd.DataFrame, y_test: pd.Series | np.ndarray) -> tuple[float, float, str]:
         """
         Evaluate model performance on the test dataset.
 
@@ -158,7 +154,6 @@ class CreditScoringPipeline:
             report : str
                 Full classification report.
         """
-
         y_pred = self.pipeline.predict(X_test)
         y_proba = self.pipeline.predict_proba(X_test)
 
@@ -175,7 +170,7 @@ class CreditScoringPipeline:
 
         return acc, auc, report
 
-    def predict(self, X):
+    def predict(self, X: pd.DataFrame) -> np.ndarray:
         """
         Generate predictions using the trained pipeline.
 
@@ -189,10 +184,9 @@ class CreditScoringPipeline:
         np.ndarray
             Predicted class labels.
         """
-
         return self.pipeline.predict(X)
 
-    def get_coefficients(self):
+    def get_coefficients(self) -> tuple[np.ndarray, np.ndarray]:
         """
         Extract model coefficients and intercepts.
 
@@ -204,12 +198,11 @@ class CreditScoringPipeline:
             intercept : np.ndarray
                 Model intercept values.
         """
-
         model = self.pipeline.named_steps["model"]
 
         return model.coef_, model.intercept_
 
-    def save(self, path):
+    def save(self, path: str) -> None:
         """
         Save the trained pipeline to disk.
 
@@ -218,5 +211,4 @@ class CreditScoringPipeline:
         path : str
             File path where the pipeline will be stored.
         """
-
         joblib.dump(self.pipeline, path)

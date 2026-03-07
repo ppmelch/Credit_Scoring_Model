@@ -13,7 +13,7 @@ FINAL_FEATURES = [
 ]
 
 
-def load_data(path):
+def load_data(path: str) -> tuple[pd.DataFrame, pd.Series]:
     """
     Load and prepare the dataset for modeling.
 
@@ -48,16 +48,12 @@ def load_data(path):
         "Good": 2
     }
 
-    # Encode target variable
     y = df["Credit_Score"].map(mapping)
 
-    # Separate features
     X = df.drop("Credit_Score", axis=1)
 
-    # Create dummy variables for categorical features
     X = pd.get_dummies(X, drop_first=True).astype(float)
 
-    # Select final features used by the model
     X = X[FINAL_FEATURES]
 
     return X, y
