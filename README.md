@@ -44,78 +44,8 @@ The **Credit Scoring Model** transforms raw consumer credit data into interpreta
 
 ---
 
-## Project Structure
-
-``` mermaid
-flowchart TD
-    ROOT["Credit_Scoring_Model/"]
-
-    ROOT --> DATA["data/"]
-    ROOT --> NOTEBOOKS["notebooks/"]
-    ROOT --> SRC["src/"]
-    ROOT --> MAIN["main.py"]
-    ROOT --> REQ["requirements.txt"]
-    ROOT --> README["README.md"]
-
-    DATA --> D1["train-3.csv"]
-    D1 --> D2["clean_train.csv"]
-    D2 --> D3["scores_full_dataset.csv"]
-
-    NOTEBOOKS --> N1["feature_analysis.ipynb"]
-    N1 --> N2["test.ipynb"]
-
-    SRC --> SRC_DATA["data/"]
-    SRC --> SRC_MOD["modeling/"]
-    SRC --> SRC_UTILS["utils/"]
-    SRC --> SRC_VIZ["visualization/"]
-
-    SRC_DATA --> SD1["data_cleaning.py"]
-    SD1 --> SD2["load_data.py"]
-
-    SRC_MOD --> SM1["train_model.py"]
-    SM1 --> SM2["trainer.py"]
-    SM2 --> SM3["score_model.py"]
-    SM3 --> SM4["score_pipeline.py"]
-
-    SRC_UTILS --> SU1["utils.py"]
-
-    SRC_VIZ --> SV1["viz.py"]
-
-    style ROOT fill:#222,stroke:#222,color:#fff,font-weight:bold
-    style DATA fill:#444,stroke:#444,color:#fff
-    style NOTEBOOKS fill:#444,stroke:#444,color:#fff
-    style SRC fill:#444,stroke:#444,color:#fff
-    style MAIN fill:#444,stroke:#444,color:#fff
-    style REQ fill:#444,stroke:#444,color:#fff
-    style README fill:#444,stroke:#444,color:#fff
-
-    style SRC_DATA fill:#666,stroke:#666,color:#fff
-    style SRC_MOD fill:#666,stroke:#666,color:#fff
-    style SRC_UTILS fill:#666,stroke:#666,color:#fff
-    style SRC_VIZ fill:#666,stroke:#666,color:#fff
-
-    style D1 fill:#999,stroke:#999,color:#fff
-    style D2 fill:#999,stroke:#999,color:#fff
-    style D3 fill:#999,stroke:#999,color:#fff
-    style N1 fill:#999,stroke:#999,color:#fff
-    style N2 fill:#999,stroke:#999,color:#fff
-    style SD1 fill:#999,stroke:#999,color:#fff
-    style SD2 fill:#999,stroke:#999,color:#fff
-    style SM1 fill:#999,stroke:#999,color:#fff
-    style SM2 fill:#999,stroke:#999,color:#fff
-    style SM3 fill:#999,stroke:#999,color:#fff
-    style SM4 fill:#999,stroke:#999,color:#fff
-    style SU1 fill:#999,stroke:#999,color:#fff
-    style SV1 fill:#999,stroke:#999,color:#fff
-
-```
-
----
 
 ## Architecture
-
-The two Mermaid diagrams below are also available as standalone files:
-[`architecture_functional.mmd`](architecture_functional.mmd) and [`architecture_oop.mmd`](architecture_oop.mmd).
 
 ### Functional Architecture
 
@@ -123,66 +53,92 @@ Data-flow from raw CSV to scored output:
 
 ```mermaid
 flowchart TD
-    subgraph INPUT["📂 Input"]
+    subgraph INPUT["Input"]
         RAW["raw_train.csv\ntrain-3.csv"]
     end
 
-    subgraph DATA["src/data"]
+    RAW -->|"raw DataFrame"| DC
+
+    subgraph SRCDATA["src/data"]
         DC["data_cleaning.py\ndata_preprocessing()"]
-        LD["load_data.py\nload_data()"]
+        DC --> CLEAN["clean_train.csv"]
+        CLEAN --> LD["load_data.py\nload_data()"]
     end
 
-    subgraph MODELING["src/modeling"]
-        SP["score_pipeline.py\ntrain_score_model()"]
-        EV["score_pipeline.py\nevaluate_model()"]
-        SD["score_pipeline.py\nscore_dataset()"]
+    LD -->|"X: DataFrame\ny: Series"| MAIN["main.py\nmain()"]
+
+    MAIN -->|"X_train, y_train\nX_test"| TSM
+
+    subgraph SRCMOD["src/modeling"]
+        TSM["score_pipeline.py\ntrain_score_model()"]
+        TSM -->|"model,\nX_train_scaled\nX_test_scaled"| EVM["score_pipeline.py\nevaluate_model()"]
+        SDS["score_pipeline.py\nscore_dataset()"]
     end
 
-    subgraph UTILS["src/utils"]
-        PR["utils.py\nprint_results()"]
-    end
+    MAIN -->|"X full, model\nexperiment"| SDS
 
-    subgraph VIZ["src/visualization"]
+    EVM -->|"y_true, y_pred"| CM
+    EVM -->|"scores, labels\nthresholds"| SD
+    EVM -->|"scores, real\npredicted"| RVP
+    EVM -->|"acc, scores\ny_pred"| PR
+
+    subgraph SRCVIZ["src/visualization"]
         CM["viz.py\nplot_confusion_matrix()"]
-        DIST["viz.py\nplot_score_distribution()"]
+        SD["viz.py\nplot_score_distribution()"]
         RVP["viz.py\nplot_real_vs_predicted()"]
     end
 
-    subgraph OUTPUT["📄 Output"]
+    subgraph SRCUTILS["src/utils"]
+        PR["utils.py\nprint_results()"]
+    end
+
+    subgraph OUTPUT["Output"]
         CSV["scores_full_dataset.csv"]
         PLOTS["Plots / Charts"]
     end
 
-    RAW -->|"raw DataFrame"| DC
-    DC -->|"clean_train.csv"| LD
-    LD -->|"X: DataFrame\ny: Series"| MAIN
-
-    MAIN["main.py\nmain()"]
-
-    MAIN -->|"X_train, y_train\nX_test"| SP
-    SP -->|"model, X_train_scaled\nX_test_scaled"| EV
-    EV -->|"acc, scores\ny_pred"| PR
-    EV -->|"y_true, y_pred"| CM
-    EV -->|"scores, labels\nthresholds"| DIST
-    EV -->|"scores, real\npredicted"| RVP
+    SDS --> CSV
     CM --> PLOTS
-    DIST --> PLOTS
+    SD --> PLOTS
     RVP --> PLOTS
     PR --> PLOTS
 
-    MAIN -->|"X full, model\nexperiment"| SD
-    SD --> CSV
+    %% Input
+    style INPUT fill:#2a2a2a,stroke:#888888,color:#ffffff
+    style RAW fill:#1a1a1a,stroke:#777777,color:#dddddd
 
-    style INPUT fill:#1e2a3a,stroke:#4a9eff,color:#fff
-    style DATA fill:#1a2a1a,stroke:#4caf50,color:#fff
-    style MODELING fill:#2a1a2a,stroke:#9c27b0,color:#fff
-    style UTILS fill:#2a2a1a,stroke:#ff9800,color:#fff
-    style VIZ fill:#1a2a2a,stroke:#00bcd4,color:#fff
-    style OUTPUT fill:#2a1a1a,stroke:#f44336,color:#fff
-    style MAIN fill:#263238,stroke:#4a9eff,color:#fff,font-weight:bold
+    %% src/data
+    style SRCDATA fill:#2f2f2f,stroke:#aaaaaa,stroke-width:2px,color:#ffffff
+    style DC fill:#1a1a1a,stroke:#888888,color:#dddddd
+    style CLEAN fill:#1a1a1a,stroke:#888888,color:#dddddd
+    style LD fill:#1a1a1a,stroke:#888888,color:#dddddd
+
+    %% main
+    style MAIN fill:#333333,stroke:#cccccc,stroke-width:2px,color:#ffffff,font-weight:bold
+
+    %% src/modeling
+    style SRCMOD fill:#222222,stroke:#aaaaaa,stroke-width:2px,color:#ffffff
+    style TSM fill:#1a1a1a,stroke:#888888,color:#dddddd
+    style EVM fill:#1a1a1a,stroke:#888888,color:#dddddd
+    style SDS fill:#1a1a1a,stroke:#888888,color:#dddddd
+
+    %% src/visualization
+    style SRCVIZ fill:#2a2a2a,stroke:#aaaaaa,stroke-width:2px,color:#ffffff
+    style CM fill:#1a1a1a,stroke:#888888,color:#dddddd
+    style SD fill:#1a1a1a,stroke:#888888,color:#dddddd
+    style RVP fill:#1a1a1a,stroke:#888888,color:#dddddd
+
+    %% src/utils
+    style SRCUTILS fill:#333333,stroke:#aaaaaa,stroke-width:2px,color:#ffffff
+    style PR fill:#1a1a1a,stroke:#888888,color:#dddddd
+
+    %% output
+    style OUTPUT fill:#2a2a2a,stroke:#aaaaaa,stroke-width:2px,color:#ffffff
+    style CSV fill:#1a1a1a,stroke:#888888,color:#dddddd
+    style PLOTS fill:#1a1a1a,stroke:#888888,color:#dddddd
 ```
 
-### OOP Architecture
+### Object-Oriented Architecture
 
 Class diagram showing all components and their relationships:
 
@@ -281,6 +237,71 @@ classDiagram
     Main ..> VizModule : calls plots
     Main ..> UtilsModule : calls print_results()
     CreditScoringPipeline ..> CreditScoreModel : supplies coef via get_coefficients()
+```
+### Project Structure
+
+``` mermaid
+flowchart TD
+    ROOT["Credit_Scoring_Model/"]
+
+    ROOT --> DATA["data/"]
+    ROOT --> NOTEBOOKS["notebooks/"]
+    ROOT --> SRC["src/"]
+    ROOT --> MAIN["main.py"]
+    ROOT --> REQ["requirements.txt"]
+    ROOT --> README["README.md"]
+
+    DATA --> D1["train-3.csv"]
+    D1 --> D2["clean_train.csv"]
+    D2 --> D3["scores_full_dataset.csv"]
+
+    NOTEBOOKS --> N1["feature_analysis.ipynb"]
+    N1 --> N2["test.ipynb"]
+
+    SRC --> SRC_DATA["data/"]
+    SRC --> SRC_MOD["modeling/"]
+    SRC --> SRC_UTILS["utils/"]
+    SRC --> SRC_VIZ["visualization/"]
+
+    SRC_DATA --> SD1["data_cleaning.py"]
+    SD1 --> SD2["load_data.py"]
+
+    SRC_MOD --> SM1["train_model.py"]
+    SM1 --> SM2["trainer.py"]
+    SM2 --> SM3["score_model.py"]
+    SM3 --> SM4["score_pipeline.py"]
+
+    SRC_UTILS --> SU1["utils.py"]
+
+    SRC_VIZ --> SV1["viz.py"]
+
+    style ROOT fill:#222,stroke:#222,color:#fff,font-weight:bold
+    style DATA fill:#444,stroke:#444,color:#fff
+    style NOTEBOOKS fill:#444,stroke:#444,color:#fff
+    style SRC fill:#444,stroke:#444,color:#fff
+    style MAIN fill:#444,stroke:#444,color:#fff
+    style REQ fill:#444,stroke:#444,color:#fff
+    style README fill:#444,stroke:#444,color:#fff
+
+    style SRC_DATA fill:#666,stroke:#666,color:#fff
+    style SRC_MOD fill:#666,stroke:#666,color:#fff
+    style SRC_UTILS fill:#666,stroke:#666,color:#fff
+    style SRC_VIZ fill:#666,stroke:#666,color:#fff
+
+    style D1 fill:#999,stroke:#999,color:#fff
+    style D2 fill:#999,stroke:#999,color:#fff
+    style D3 fill:#999,stroke:#999,color:#fff
+    style N1 fill:#999,stroke:#999,color:#fff
+    style N2 fill:#999,stroke:#999,color:#fff
+    style SD1 fill:#999,stroke:#999,color:#fff
+    style SD2 fill:#999,stroke:#999,color:#fff
+    style SM1 fill:#999,stroke:#999,color:#fff
+    style SM2 fill:#999,stroke:#999,color:#fff
+    style SM3 fill:#999,stroke:#999,color:#fff
+    style SM4 fill:#999,stroke:#999,color:#fff
+    style SU1 fill:#999,stroke:#999,color:#fff
+    style SV1 fill:#999,stroke:#999,color:#fff
+
 ```
 
 ---
