@@ -446,6 +446,13 @@ After running `main.py`, the file `data/scores_full_dataset.csv` is created with
 
 ---
 
+## Documentation
+
+The full project report is available here:
+
+- [Credit Scoring Report](docs/credit_scoring_report.pdf)
+
+
 ## About the Author
 
 This repository was created by 
