@@ -1,7 +1,12 @@
-# Credit_Scoring_Model
-Credit Models Project
+# Credit Scoring Model
+### Credit Models project
 
-A machine-learning pipeline that cleans raw financial data, trains a **logistic-regression scorecard**, and produces normalized credit scores (0–500) with three-class classification: **Poor**, **Standard**, and **Good**.
+**Author:** 
+  - José Armando Melchor Soto
+  - Rolando Fortanell Canedo
+  - David Campos Ambriz 
+**Course:** Credit Models  
+**Institution:** ITESO  
 
 ---
 
@@ -380,6 +385,14 @@ After running `main.py`, the file `data/scores_full_dataset.csv` is created with
 
 ---
 
+## About the Author
+
+This repository was created by 
+- **José Armando Melchor Soto**
+- **Rolando Fortanell Canedo**
+- **David Campos Ambriz** 
+
+---
 ## License
 
-This project is licensed under the terms of the [LICENSE](LICENSE) file included in this repository.
+This project is licensed under the **MIT License** - [LICENSE](LICENSE). 
