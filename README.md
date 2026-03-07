@@ -4,7 +4,8 @@
 **Author:** 
   - José Armando Melchor Soto
   - Rolando Fortanell Canedo
-  - David Campos Ambriz 
+  - David Campos Ambriz
+
 **Course:** Credit Models  
 **Institution:** ITESO  
 
