@@ -38,7 +38,7 @@ def main():
 
     # == Results and Visualization ==
 
-    print_results(acc, scores_test, model)
+    print_results(acc, model)
 
     plot_confusion_matrix(y_train, y_pred_train, model_name="Train")
     plot_confusion_matrix(y_test, y_pred_test, model_name="Test")

@@ -1,7 +1,7 @@
 import numpy as np
 
 
-def print_results(acc: float, scores: list | np.ndarray, model: object) -> None:
+def print_results(acc: float | np.ndarray, model: object) -> None:
     """
     Print a summary of model performance and scoring thresholds.
 
@@ -15,5 +15,4 @@ def print_results(acc: float, scores: list | np.ndarray, model: object) -> None:
         Trained scoring model containing the threshold attributes `t1` and `t2`.
     """
     print("Accuracy:", acc)
-    print("Scores:", scores[:10])
     print(f"Thresholds used → t1: {model.t1}, t2: {model.t2}")

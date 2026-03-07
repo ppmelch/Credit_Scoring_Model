@@ -41,31 +41,24 @@ def plot_confusion_matrix(y_true: pd.Series | np.ndarray, y_pred: np.ndarray, cl
     plt.show()
 
 
-def plot_score_distribution(score_values: np.ndarray, true_labels: pd.Series | np.ndarray, score_thresholds: list[float], dataset_name: str = "Train") -> None:
-    """
-    Plot the distribution of credit scores overall and by class.
-
-    Parameters
-    ----------
-    score_values : np.ndarray
-        Credit scores produced by the model.
-    true_labels : array-like
-        True class labels.
-    score_thresholds : list
-        Threshold values used for classification.
-    dataset_name : str
-        Dataset identifier (Train/Test).
-    """
+def plot_score_distribution(score_values, true_labels, score_thresholds, dataset_name="Train"):
 
     score_df = pd.DataFrame({
         "Score": score_values,
         "True_Class": true_labels
     })
 
-    plt.figure(figsize=(10, 5))
+    class_map = {
+        0: "Poor",
+        1: "Standard",
+        2: "Good"
+    }
+
+    # -------- GENERAL DISTRIBUTION --------
+    plt.figure(figsize=(10,5))
 
     sns.kdeplot(
-        score_df["Score"],
+        x=score_df["Score"],
         fill=True,
         alpha=0.3,
         linewidth=2
@@ -78,24 +71,21 @@ def plot_score_distribution(score_values: np.ndarray, true_labels: pd.Series | n
     plt.xlabel("Score")
     plt.ylabel("Density")
     plt.legend()
+
     plt.show()
 
-    plt.figure(figsize=(10, 5))
 
-    class_map = {
-        0: "Poor",
-        1: "Standard",
-        2: "Good"
-    }
+    # -------- DISTRIBUTION PER CLASS (LAS 3 JUNTAS) --------
+    plt.figure(figsize=(10,5))
 
-    for class_id in [0, 1, 2]:
+    for class_id, class_name in class_map.items():
 
         sns.kdeplot(
-            score_df[score_df["True_Class"] == class_id]["Score"],
+            x=score_df.loc[score_df["True_Class"] == class_id, "Score"],
             fill=True,
             alpha=0.3,
             linewidth=2,
-            label=class_map[class_id]
+            label=class_name
         )
 
     plt.axvline(score_thresholds[0], linestyle="--", color="gray")
@@ -105,8 +95,32 @@ def plot_score_distribution(score_values: np.ndarray, true_labels: pd.Series | n
     plt.xlabel("Score")
     plt.ylabel("Density")
     plt.legend()
+
     plt.show()
 
+
+    # -------- INDIVIDUAL CLASS DISTRIBUTIONS --------
+    for class_id, class_name in class_map.items():
+
+        plt.figure(figsize=(10,5))
+
+        sns.kdeplot(
+            x=score_df.loc[score_df["True_Class"] == class_id, "Score"],
+            fill=True,
+            alpha=0.3,
+            linewidth=2,
+            bw_adjust=1
+        )
+
+        plt.axvline(score_thresholds[0], linestyle="--", color="gray", label="t1")
+        plt.axvline(score_thresholds[1], linestyle="--", color="black", label="t2")
+
+        plt.title(f"{dataset_name} Score Distribution - {class_name}")
+        plt.xlabel("Score")
+        plt.ylabel("Density")
+        plt.legend()
+
+        plt.show()
 
 def plot_real_vs_predicted(score_values: np.ndarray, true_labels: pd.Series | np.ndarray, predicted_labels: np.ndarray, dataset_name: str = "Train") -> None:
     """
