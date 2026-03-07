@@ -1,0 +1,94 @@
+classDiagram
+    direction TB
+
+    class CreditScoringPipeline {
+        +model : sklearn estimator
+        +scale_numeric : bool
+        +pipeline : Pipeline
+        ---
+        +_build_preprocessor(X) ColumnTransformer
+        +build_pipeline(X) None
+        +cross_validate(X, y, cv) tuple~float,float~
+        +fit(X, y) None
+        +evaluate(X_test, y_test) tuple~float,float,str~
+        +predict(X) ndarray
+        +get_coefficients() tuple~ndarray,ndarray~
+        +save(path) None
+    }
+
+    class Experiment {
+        +version : str
+        +model : LogisticRegression
+        +pipeline : CreditScoringPipeline
+        +coef : ndarray
+        +intercept : ndarray
+        ---
+        +split_data(X, y) tuple
+        +run(X_train, y_train) tuple~ndarray,ndarray~
+        +transform(X) ndarray
+    }
+
+    class CreditScoreModel {
+        +coef : ndarray
+        +intercept : float
+        +features : list~str~
+        +t1 : int = 327
+        +t2 : int = 409
+        ---
+        +score(X) ndarray
+        +credit_score(X) ndarray
+        +predict(X) ndarray
+        +classify(score) int
+    }
+
+    class ScorePipeline {
+        <<module: score_pipeline>>
+        +train_score_model(experiment, X_train, y_train, X_test, features) tuple
+        +evaluate_model(model, X_train, X_test, y_test) tuple
+        +score_dataset(data, model, experiment, save_path) DataFrame
+    }
+
+    class DataModule {
+        <<module: data_cleaning + load_data>>
+        +FINAL_FEATURES : list~str~
+        +DROP_COLS : list~str~
+        +RANGE_RULES : list~tuple~
+        ---
+        +data_preprocessing(data, save_path) DataFrame
+        +load_data(path) tuple~DataFrame,Series~
+        +_convert_credit_history_age(x) float
+        +_apply_range_rule(data, col, min, max) DataFrame
+        +_impute_numeric(data, col) DataFrame
+    }
+
+    class VizModule {
+        <<module: viz>>
+        ---
+        +plot_confusion_matrix(y_true, y_pred, class_names, model_name) None
+        +plot_score_distribution(scores, labels, thresholds, dataset_name) None
+        +plot_real_vs_predicted(scores, true_labels, pred_labels, dataset_name) None
+    }
+
+    class UtilsModule {
+        <<module: utils>>
+        ---
+        +print_results(acc, scores, model) None
+    }
+
+    class Main {
+        <<entrypoint: main.py>>
+        ---
+        +main() None
+    }
+
+    %% Relationships
+    Experiment "1" --> "1" CreditScoringPipeline : creates & owns
+    Experiment "1" --> "1" CreditScoreModel : provides coef/intercept to
+    ScorePipeline ..> Experiment : uses
+    ScorePipeline ..> CreditScoreModel : creates
+    Main ..> DataModule : calls load_data()
+    Main ..> Experiment : instantiates
+    Main ..> ScorePipeline : calls train / evaluate / score
+    Main ..> VizModule : calls plots
+    Main ..> UtilsModule : calls print_results()
+    CreditScoringPipeline ..> CreditScoreModel : supplies coef via get_coefficients()
