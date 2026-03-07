@@ -1,0 +1,84 @@
+flowchart TD
+    subgraph INPUT["Input"]
+        RAW["raw_train.csv\ntrain-3.csv"]
+    end
+
+    RAW -->|"raw DataFrame"| DC
+
+    subgraph SRCDATA["src/data"]
+        DC["data_cleaning.py\ndata_preprocessing()"]
+        DC --> CLEAN["clean_train.csv"]
+        CLEAN --> LD["load_data.py\nload_data()"]
+    end
+
+    LD -->|"X: DataFrame\ny: Series"| MAIN["main.py\nmain()"]
+
+    MAIN -->|"X_train, y_train\nX_test"| TSM
+
+    subgraph SRCMOD["src/modeling"]
+        TSM["score_pipeline.py\ntrain_score_model()"]
+        TSM -->|"model,\nX_train_scaled\nX_test_scaled"| EVM["score_pipeline.py\nevaluate_model()"]
+        SDS["score_pipeline.py\nscore_dataset()"]
+    end
+
+    MAIN -->|"X full, model\nexperiment"| SDS
+
+    EVM -->|"y_true, y_pred"| CM
+    EVM -->|"scores, labels\nthresholds"| SD
+    EVM -->|"scores, real\npredicted"| RVP
+    EVM -->|"acc, scores\ny_pred"| PR
+
+    subgraph SRCVIZ["src/visualization"]
+        CM["viz.py\nplot_confusion_matrix()"]
+        SD["viz.py\nplot_score_distribution()"]
+        RVP["viz.py\nplot_real_vs_predicted()"]
+    end
+
+    subgraph SRCUTILS["src/utils"]
+        PR["utils.py\nprint_results()"]
+    end
+
+    subgraph OUTPUT["📄 Output"]
+        CSV["scores_full_dataset.csv"]
+        PLOTS["Plots / Charts"]
+    end
+
+    SDS --> CSV
+    CM --> PLOTS
+    SD --> PLOTS
+    RVP --> PLOTS
+    PR --> PLOTS
+
+    %% Input
+    style INPUT fill:#2a2a2a,stroke:#888888,color:#ffffff
+    style RAW fill:#1a1a1a,stroke:#777777,color:#dddddd
+
+    %% src/data
+    style SRCDATA fill:#2f2f2f,stroke:#aaaaaa,stroke-width:2px,color:#ffffff
+    style DC fill:#1a1a1a,stroke:#888888,color:#dddddd
+    style CLEAN fill:#1a1a1a,stroke:#888888,color:#dddddd
+    style LD fill:#1a1a1a,stroke:#888888,color:#dddddd
+
+    %% main
+    style MAIN fill:#333333,stroke:#cccccc,stroke-width:2px,color:#ffffff,font-weight:bold
+
+    %% src/modeling
+    style SRCMOD fill:#222222,stroke:#aaaaaa,stroke-width:2px,color:#ffffff
+    style TSM fill:#1a1a1a,stroke:#888888,color:#dddddd
+    style EVM fill:#1a1a1a,stroke:#888888,color:#dddddd
+    style SDS fill:#1a1a1a,stroke:#888888,color:#dddddd
+
+    %% src/visualization
+    style SRCVIZ fill:#2a2a2a,stroke:#aaaaaa,stroke-width:2px,color:#ffffff
+    style CM fill:#1a1a1a,stroke:#888888,color:#dddddd
+    style SD fill:#1a1a1a,stroke:#888888,color:#dddddd
+    style RVP fill:#1a1a1a,stroke:#888888,color:#dddddd
+
+    %% src/utils
+    style SRCUTILS fill:#333333,stroke:#aaaaaa,stroke-width:2px,color:#ffffff
+    style PR fill:#1a1a1a,stroke:#888888,color:#dddddd
+
+    %% output
+    style OUTPUT fill:#2a2a2a,stroke:#aaaaaa,stroke-width:2px,color:#ffffff
+    style CSV fill:#1a1a1a,stroke:#888888,color:#dddddd
+    style PLOTS fill:#1a1a1a,stroke:#888888,color:#dddddd
