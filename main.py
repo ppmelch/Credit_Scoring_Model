@@ -43,10 +43,9 @@ def main():
     plot_confusion_matrix(y_train, y_pred_train, model_name="Train")
     plot_confusion_matrix(y_test, y_pred_test, model_name="Test")
 
-    plot_score_distribution(scores_train, y_train, thresholds=[
-                            model.t1, model.t2], set_name="Train")
-    plot_score_distribution(scores_test, y_test, thresholds=[
-                            model.t1, model.t2], set_name="Test")
+    plot_score_distribution(scores_train, y_train, [
+                            model.t1, model.t2], "Train")
+    plot_score_distribution(scores_test, y_test, [model.t1, model.t2], "Test")
 
     plot_real_vs_predicted(scores_train, y_train, y_pred_train, "Train")
     plot_real_vs_predicted(scores_test, y_test, y_pred_test, "Test")

@@ -3,6 +3,8 @@ import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
+from sklearn.metrics import confusion_matrix
+
 
 sns.set_theme(style="whitegrid", palette="Greys_r")
 plt.rcParams["figure.figsize"] = (12, 6)
@@ -13,7 +15,7 @@ red_grey = mcolors.LinearSegmentedColormap.from_list(
     ["#bfbfbf96", "#c60f0f"])
 
 
-def plot_confusion_matrix(y_true: pd.Series | np.ndarray, y_pred: np.ndarray, class_labels: tuple[str, str, str] = ("Poor", "Standard", "Good"), title: str = "Score Model") -> None:
+def plot_confusion_matrix(y_true: pd.Series | np.ndarray, y_pred: np.ndarray, class_names: tuple[str, str, str] = ("Poor", "Standard", "Good"), model_name: str = "Score Model") -> None:
     """
     Plot the confusion matrix of predicted vs true classes.
 
@@ -23,20 +25,16 @@ def plot_confusion_matrix(y_true: pd.Series | np.ndarray, y_pred: np.ndarray, cl
         True class labels.
     y_pred : np.ndarray
         Predicted class labels.
-    class_labels : tuple
-        Names of the classes.
-    title : str
-        Title identifier for the plot.
+    model_name : str
+        Name of the model for the plot title.
     """
 
-    from sklearn.metrics import confusion_matrix
-
     matrix = confusion_matrix(y_true, y_pred)
-    matrix_df = pd.DataFrame(matrix, index=class_labels, columns=class_labels)
+    matrix_df = pd.DataFrame(matrix, index=class_names, columns=class_names)
 
     plt.figure(figsize=(8, 6))
     sns.heatmap(matrix_df, annot=True, fmt="d", cmap="Greys", cbar=False)
-    plt.title(f"Confusion Matrix - {title}")
+    plt.title(f"Confusion Matrix - {model_name}")
     plt.ylabel("True Label")
     plt.xlabel("Predicted Label")
     plt.tight_layout()
