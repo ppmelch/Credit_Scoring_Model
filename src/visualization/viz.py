@@ -349,32 +349,132 @@ def plot_xgb_importance(model, X,
     plt.show()
     
     
-   
+  
+    
+def plot_confusion_matrix(y_true, y_pred, class_names=("Poor","Standard","Good"), model_name="Score Model"):
 
-def plot_score_distribution(scores, y,
-                            class_names=("Poor","Standard","Good"),
-                            model_name="Score Model"):
+    from sklearn.metrics import confusion_matrix
 
-    scores = np.array(scores)
-    y = np.array(y)
+    cm = confusion_matrix(y_true, y_pred)
+    cm_df = pd.DataFrame(cm, index=class_names, columns=class_names)
 
-    plt.figure()
+    plt.figure(figsize=(8,6))
+    sns.heatmap(cm_df, annot=True, fmt="d", cmap="Greys", cbar=False)
+    plt.title(f"Confusion Matrix - {model_name}")
+    plt.ylabel("True Label")
+    plt.xlabel("Predicted Label")
+    plt.tight_layout()
+    plt.show()
+    
+    
 
-    for i, name in enumerate(class_names):
+def plot_score_distribution(scores, y, thresholds, set_name="Train"):
+    """
+    Plot score distribution overall and per class.
 
-        class_scores = scores[y == i]
+    Parameters
+    ----------
+    scores : np.ndarray
+        Credit scores produced by the model
+    y : array-like
+        True class labels (0,1,2)
+    thresholds : list
+        [t1, t2] thresholds used for classification
+    set_name : str
+        Name of dataset (Train/Test)
+    """
 
-        sns.kdeplot(
-            class_scores,
-            fill=True,
-            alpha=0.35,
-            linewidth=2,
-            label=name
-        )
+    df = pd.DataFrame({
+        "Score": scores,
+        "Credit_Score": y
+    })
 
-    plt.title(f"Score Density - {model_name}")
+    plt.figure(figsize=(10,5))
+
+    sns.kdeplot(
+        df["Score"],
+        fill=True,
+        alpha=0.3,
+        linewidth=2
+    )
+
+    plt.axvline(thresholds[0], linestyle="--", color="gray", label="t1")
+    plt.axvline(thresholds[1], linestyle="--", color="black", label="t2")
+
+    plt.title(f"{set_name} Distribution of Credit Score")
     plt.xlabel("Score")
     plt.ylabel("Density")
     plt.legend()
+    plt.show()
+    
+    plt.figure(figsize=(10,5))
+
+    labels = {
+        0: "Poor",
+        1: "Standard",
+        2: "Good"
+    }
+
+    for c in [0,1,2]:
+
+        sns.kdeplot(
+            df[df["Credit_Score"] == c]["Score"],
+            fill=True,
+            alpha=0.3,
+            linewidth=2,
+            label=labels[c]
+        )
+
+    plt.axvline(thresholds[0], linestyle="--", color="gray")
+    plt.axvline(thresholds[1], linestyle="--", color="black")
+
+    plt.title(f"{set_name} Score Distribution per Class")
+    plt.xlabel("Score")
+    plt.ylabel("Density")
+    plt.legend()
+    plt.show()
+    
+
+def plot_real_vs_predicted(scores, y_true, y_pred, set_name="Train"):
+
+    df = pd.DataFrame({
+        "Score": scores,
+        "Real": y_true,
+        "Predicted": y_pred
+    })
+
+    labels = {
+        0: "Poor",
+        1: "Standard",
+        2: "Good"
+    }
+
+    fig, axes = plt.subplots(1, 3, figsize=(18,5))
+
+    for i in range(3):
+
+        real_scores = df[df["Real"] == i]["Score"]
+        pred_scores = df[df["Predicted"] == i]["Score"]
+
+        sns.kdeplot(
+            real_scores,
+            ax=axes[i],
+            label="Real",
+            fill=True,
+            alpha=0.3
+        )
+
+        sns.kdeplot(
+            pred_scores,
+            ax=axes[i],
+            label="Predicted",
+            linestyle="--"
+        )
+
+        axes[i].set_title(f"{set_name} - {labels[i]}")
+        axes[i].set_xlabel("Score")
+        axes[i].set_ylabel("Density")
+        axes[i].legend()
+
     plt.tight_layout()
     plt.show()

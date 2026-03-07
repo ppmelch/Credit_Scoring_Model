@@ -26,9 +26,8 @@ class CreditScoreModel:
         self.intercept = intercept
         self.features = features
 
-        # Score thresholds used for classification
-        self.t1 = 569
-        self.t2 = 645
+        self.t1 = 327
+        self.t2 = 409
 
     def score(self, X):
         """
@@ -62,16 +61,13 @@ class CreditScoreModel:
 
         z = self.score(X)
 
-        # Reverse sign so higher values correspond to better credit
-        z = -z
-
         z_min = z.min()
         z_max = z.max()
 
         score_norm = (z - z_min) / (z_max - z_min)
 
-        score_min = 300
-        score_max = 850
+        score_min = 0
+        score_max = 500
 
         score = score_norm * (score_max - score_min) + score_min
 
@@ -107,10 +103,10 @@ class CreditScoreModel:
         """
 
         if score < self.t1:
-            return 1   # Standard
+            return 0   # Poor
 
         elif score < self.t2:
-            return 0   # Poor
+            return 1   # Standard
 
         else:
             return 2   # Good
